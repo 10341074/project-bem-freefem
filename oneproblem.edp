@@ -1,0 +1,104 @@
+/////////////////////////////////////////
+func real init(matrix & m, complex affRt)
+{
+	real theta = arg(affRt);
+	m = [
+		[cos(theta), sin(theta)],
+		[-sin(theta), cos(theta)]
+		];
+	return 0;
+}
+/////////////////////////////////////////
+include "shapes/oneCircle.edp";
+include "shapes/oneEllipse.edp";
+include "shapes/oneKite.edp";
+include "shapes/oneDrop.edp";
+//////////////////////////////////////////
+///////////////////////////
+bool savefile = 1;
+///////////////////////////
+// include "mesh.edp"
+///////////////////////////
+func real oneproblem(int no)
+{
+	real ro = 3.0;
+	// no = 500;
+	real step = 2 * pi * 1.0 / no / 2;
+
+	border so(t=step,2*pi + step){x = ro * cos(t); y = ro * sin(t);};
+	mesh Th = buildmesh(so(no));
+	///////////////////////////////////////
+	include "indnod.edp";
+	// func f = oneCircleI(x, y, 0, 2);
+func gamma = oneKiteI(x,y,0,0.8 + 0.8i);
+// func f = oneDropI(x,y,-1i,0.5 + 0.5i);
+// func f = oneEllipseI(x,y,2,1,-1i,0.5 + 0.5i);
+// complex[int] 	aff1 = [0.5 +1i, 0.4 - 0.4i],
+// 				aff2 = [-1-1i, 0.4 + 0.4i];
+// matrix m1, m2;
+// init(m1, aff1[1]);
+// init(m2, aff2[1]);
+// func gamma = 
+// 	oneEllipseI(x,y,2,1, aff1[0], aff1[1], m1) +
+// 	oneEllipseI(x,y,2,1, aff2[0], aff2[1], m2);
+/////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+	func f = 1 / (2 * pi) * log(1 / ((x+0.51)^2 + y^2)^0.5);
+func uexpx = (3 * x^2 - 3 * y^2);
+func uexpy = ( - 6 * x * y);
+//func gamma = (x-0.1)^2 + (y-0.6)^2 - 0.04<= 0;
+
+fespace Vh(Th, P1);
+Vh uh, vh;
+////////////////////////////////////////////////////////
+problem lap(uh, vh) = 
+	int2d(Th)(dx(uh) * dx(vh) + dy (uh) * dy(vh))
+	-int1d(Th,1)((uexpx * N.x + uexpy * N.y) * vh);
+//	+on(1,2,3,4, uh = f);
+problem lap2(uh, vh) = 
+	int2d(Th)((1 + 1 * gamma) * dx(uh) * dx(vh) + dy (uh) * dy(vh))
+	-int1d(Th,1)((uexpx * N.x + uexpy * N.y) * vh);
+//	+on(1,2,3,4, uh = f);
+////////////////////////////////////////////////////
+lap;
+Vh fh = f;
+plot(Th,uh,fill = 1,dim = 3, value = 1);
+lap2;
+plot(Th, uh,fill = 1,dim = 3, value = 1);
+
+// compute nboundary
+int nboundary = getnboundary();
+int[int] indnod(nboundary);
+// compute indnod
+getindnod(indnod, nboundary);
+cout << "nboundary = " << nboundary << endl;
+cout << "ndof = " << VhP1.ndof << endl;
+// cout << indnod << endl;
+
+
+Vh fx = x, fy = y;
+string namefilex = "out/incx-" + no +".txt";
+string namefiley = "out/incy-" + no +".txt";
+string namefileu = "out/incu-" + no +".txt";
+if(savefile)
+{
+ofstream filex(namefilex);
+ofstream filey(namefiley);
+ofstream fileu(namefileu);
+
+for(int k=0; k < nboundary; k++){
+	fileu << uh[][indnod[k]] << endl;
+	filex << fx[][indnod[k]] << endl;
+	filey << fy[][indnod[k]] << endl;	
+	} 
+}
+
+return 0;
+}
+
+for(int n = 10; n < 201; n=n+10)
+{
+cout <<"n" <<  n << endl;
+if(n!=60)
+	oneproblem(n);
+}

@@ -1,0 +1,40 @@
+// mesh
+// mesh Th = square(3,3);
+//////////////////////////////////////////////////////////////////////////////////////////
+// plot(Th);
+fespace VhP1(Th,P1);
+
+func int getnboundary(){
+	int nboundary = 0;
+	int1d(Th,qfe=qf1pE)((nboundary++)*1.);  // count the number of vertices on the boundary
+	return nboundary;
+}
+
+func real getindnod(int[int] & indnod, int nboundary){
+	// hack to get the indices of the vertices
+	VhP1 index;
+	index[]=(0:VhP1.ndof-1);
+	int[int] aux(2*nboundary);
+	int m=0;
+	// int1d(Th,1,2,qfe=qf1pElump)((aux[m++]=floor(index+0.5))*1.); // ERROR
+	int1d(Th,qfe=qf1pElump)((aux[m++]=floor(index+0.5))*1.);
+	// cout << aux << endl;
+
+	index=0;
+	for(int i=0;i<nboundary;i++) index[][aux(2*i+1)]=aux[2*i];
+	indnod[0]=aux[1];
+	// indnod stores the indices of the boundary vertices
+	for(int i=1;i<nboundary;i++) indnod(i)=index[][indnod(i-1)];
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+
+
+// compute nboundary
+// int nboundary = getnboundary();
+// int[int] indnod(nboundary);
+// compute indnod
+// getindnod(indnod, nboundary);
+// cout << "nboundary = " << nboundary << endl;
+// cout << "ndof = " << VhP1.ndof << endl;
+// cout << indnod << endl;

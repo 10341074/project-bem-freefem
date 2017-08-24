@@ -1,0 +1,47 @@
+// aff[0] + aff[1] * complex(cos(2*pi*t) + 0.65 * cos(2*2*pi*t) - 0.65 + 1j * 1.5 * sin(2*pi*t))
+int oneKiteFlag = 0;
+matrix oneKitemRt;
+func real oneKiteInit(matrix & mRt, complex affRt)
+{
+	if(oneKiteFlag == 0)
+		{
+		oneKiteFlag = 1;
+		real theta = arg(affRt);
+		mRt = [
+			[cos(theta), sin(theta)],
+			[-sin(theta), cos(theta)]
+			];
+		}
+return 0;
+}
+func real oneKiteR(real y)
+{
+real yn = - y / 1.5;
+if(yn > 1)
+	yn = 1;
+if(yn < -1)
+	yn = -1;
+return cos(asin(yn)) + 0.65 * cos(2*asin(yn)) - 0.65;
+}
+func real oneKiteL(real y)
+{
+real yn = - y / 1.5;
+if(yn > 1)
+	yn = 1;
+if(yn < -1)
+	yn = -1;
+return  cos(pi - asin(yn)) + 0.65 * cos(2*pi - 2*asin(yn)) - 0.65;
+}
+func real oneKiteI(real & x, real & y, complex affTr, complex affRt)
+{
+oneKiteInit(oneKitemRt, affRt);
+real[int] xyRight(2);
+real[int] xyRt = [x - real(affTr), y - imag(affTr)];
+xyRight = oneKitemRt * xyRt;
+real xn = xyRight[0] / abs(affRt), yn = xyRight[1] / abs(affRt);
+if(oneKiteR(yn) < real(xn))
+	return 0;
+if(oneKiteL(yn) > real(xn))
+	return 0;
+return 1;
+}

@@ -1,0 +1,6 @@
+matrix a = [[10,-12], [12,3]];
+real[int] b = [2,3];
+real[int]  c(2);
+set(a,solver=UMFPACK);
+c = a^-1*b;
+cout << c << endl;

@@ -1,0 +1,120 @@
+border b(t=0,2*pi){x=cos(t); y=sin(t); label = 1;};
+mesh Th = buildmesh(b(100));
+
+// mesh Th = square(80,80,[-30 + 60 * x, -30 + 60 * y],flags = 1);
+
+plot(Th);
+
+func g1 = exp(x) - 4 * cos(2*y);
+func g2 = exp(x) + cos(2*y);
+
+func real Phi(real & x, real & y, real x0, real y0){
+if(x == x0 && y == y0)
+	return 0; 
+return 1 / (2 * pi) * log(1 / ((x - x0)^2 + (y - y0)^2)^0.5);
+}
+
+fespace Vh(Th, P1);
+
+func real intVolumePotential(real & xix, real & xiy){
+	// func Eh = E(x,y,xix, xiy);
+	// cout << "xix = " << xix << " xiy = " << xiy <<endl;
+	// real i = int2d(Th)(g1(x,y) * E(x,y,xix,xiy));
+	// cout << "i === " << i <<endl;
+	mesh Th2 = adaptmesh(Th, g1(x,y)*Phi(x,y,xix,xiy));
+	Th2 = adaptmesh(Th2, g1(x,y)*Phi(x,y,xix,xiy));
+	/*
+	fespace Vh2(Th2, P1);
+	Vh2 Eh = E(x,y,xix,xiy);
+	plot(Th2, Eh);
+	*/
+plot(Th2);
+	return - int2d(Th2)(g1(x,y) * Phi(x,y,xix,xiy));
+}
+
+/*
+func nu = intVolumePotential(x,y);
+Vh nuh, xh = x, yh = y;
+
+for(int k=0; k < Vh.ndof; k++)
+	nuh[][k] = intVolumePotential(xh[][k], yh[][k]);
+cout << nuh[] << endl;
+plot(Th, nuh, fill=1, value=1);
+
+//*/
+
+
+
+func real M2(real & x, real & y, real x0, real y0){
+return (g1(x,y) - g1(x0, y0)) * Phi(x,y,x0,y0);
+}
+
+
+func real computeMinEdge(){
+	int ndof = Vh.ndof;
+	Vh xh =x, yh = y;
+	cout << "ndof = " << ndof << endl;
+	real[int,int] E(ndof, ndof);
+	E = 99; // flag value
+	for(int i=0; i < ndof; i++){
+		for(int j=0; j < i; j++){
+			E(i,j) = sqrt((xh[][i] - xh[][j])^2 + (yh[][i] - yh[][j])^2);
+			}
+		}
+	return E.min;
+}
+
+real minedge = computeMinEdge();
+func real M1trunc(real & x, real & y, real x0, real y0, real minedge){
+if(x == x0 && y == y0)
+	return g1(x0,y0) * 1 / (2 * pi) * log(1 / minedge); 
+return g1(x0,y0) * 1 / (2 * pi) * log(1 / ((x - x0)^2 + (y - y0)^2)^0.5);
+}
+func real computeM1log(real[int] & inth, real[int] & thetah, real x0, real y0, real minedge){
+	real tot = (
+		-(2 * pi * minedge) * g1(x0,y0) * 1 / (2 * pi) * log(1 / minedge)
+		+ g1(x0,y0) * 2 * pi * (minedge^2 / 2 * log(minedge) - minedge^2 / 4)
+		);
+	inth = thetah * tot;
+return 0;
+}
+
+include "indnod.edp"
+real nboundary = getnboundary();
+int[int] indnod(nboundary); getindnod(indnod, nboundary);
+
+Vh thetah;
+thetah = 1;
+
+func real computeThetah(real[int] & thetah){
+	Vh xh = x, yh = y;
+	int km, kp;
+	for(int k=0; k<nboundary; k++){
+		km = (nboundary + k-1) % nboundary;
+		kp = (nboundary + k+1) % nboundary;
+		real 	vmx = xh[][indnod[km]] - xh[][indnod[k]],
+				vmy = yh[][indnod[km]] - yh[][indnod[k]],
+				vpx = xh[][indnod[kp]] - xh[][indnod[k]],
+				vpy = yh[][indnod[kp]] - yh[][indnod[k]];
+		thetah[indnod[k]] = acos((vmx * vpx + vmy * vpy) 
+							/(sqrt(vmx^2 + vmy^2) * sqrt(vpx^2 + vpy^2))) / (2 * pi);
+	}
+return 0;
+}
+
+computeThetah(thetah[]);
+///////////////////////////////////////////////
+Vh xh = x, yh = y;
+real px = xh[][20], py = yh[][20];
+cout << "m1 = "<< intVolumePotential(px, py) << endl;
+cout << "m2 = "<< -int2d(Th)(g1 * Phi(x,y,px,py)) << endl; // evidentemente sbagliato
+real[int] int1h(1), theta1h(1);
+theta1h = 1;
+computeM1log(int1h, theta1h, px, py, minedge);
+cout << "int1h = " <<int1h << endl;
+real tot = int1h[0] + 
+	int2d(Th)(M1trunc(x,y,px,py,minedge) + M2(x,y,px,py));
+cout << "m3 = "<< - tot << endl;
+
+Vh f =  M2(x,y,px,py), ff = M1trunc(x,y,px,py,minedge);
+plot(Th, f,ff, fill = 1, dim=3, value=1);

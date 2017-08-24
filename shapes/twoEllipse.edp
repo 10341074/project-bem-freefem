@@ -1,0 +1,31 @@
+func int oneCircleLevelset(real x, real y, real c, real r, real affTr, real affRt)
+{
+return (x - real(c))^2 + (y - imag(c))^2 <= r^2;
+}
+func real oneCircleR(real & y, real c, real r)
+{
+y = (y - imag(c)) / r;
+if(y > 1)
+	y = 1;
+if(y < -1)
+	y = -1;
+return real(c) + r * cos(asin(y));
+}
+func real oneCircleL(real y, real c, real r)
+{
+real yn = (y - imag(c)) / r;
+if(yn > 1)
+	yn = 1;
+if(yn < -1)
+	yn = -1;
+return real(c) - r * cos(asin(y));
+}
+func real oneCircleI(real & x, real & y, real c, real r)
+{
+if(oneCircleR(y, c, r) < real(x))
+	return 0;
+if(oneCircleL(y, c, r) > real(x))
+	return 0;
+return 1;
+}
+

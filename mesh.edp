@@ -1,0 +1,41 @@
+// include "setups.edp";
+real ro = 3.0, no =60;
+real step = 2 * pi * 1.0 / no / 2;
+
+border so(t=step,2*pi + step){x = ro * cos(t); y = ro * sin(t);};
+mesh Th = buildmesh(so(no));
+///////////////////////////////
+func real init(matrix & m, complex affRt)
+{
+	real theta = arg(affRt);
+	m = [
+		[cos(theta), sin(theta)],
+		[-sin(theta), cos(theta)]
+		];
+	return 0;
+}
+/////////////////////////
+include "shapes/oneCircle.edp";
+include "shapes/oneEllipse.edp";
+include "shapes/oneKite.edp";
+include "shapes/oneDrop.edp";
+
+///////////////////////////////////////
+///////////////////////////////////////
+// func f = oneCircleI(x, y, 0, 2);
+func gamma = oneKiteI(x,y,0,0.8 + 0.8i);
+// func f = oneDropI(x,y,-1i,0.5 + 0.5i);
+// func f = oneEllipseI(x,y,2,1,-1i,0.5 + 0.5i);
+
+// complex[int] 	aff1 = [0.5 +1i, 0.4 - 0.4i],
+// 				aff2 = [-1-1i, 0.4 + 0.4i];
+// matrix m1, m2;
+// init(m1, aff1[1]);
+// init(m2, aff2[1]);
+// func gamma = 
+// 	oneEllipseI(x,y,2,1, aff1[0], aff1[1], m1) +
+// 	oneEllipseI(x,y,2,1, aff2[0], aff2[1], m2);
+/////////////////////////////////////////////////////////////////////7
+fespace Vh0(Th, P0);
+Vh0 fh0 = gamma;
+plot(Th, fh0, fill=1, value=1, ColorScheme=1 );

@@ -1,0 +1,146 @@
+border b(t=0,2*pi){x=cos(t); y=sin(t); label = 1;};
+mesh Th = buildmesh(b(100));
+
+// mesh Th = square(80,80,[-30 + 60 * x, -30 + 60 * y],flags = 1);
+
+plot(Th);
+
+func g1 = exp(x) - 4 * cos(2*y);
+func g2 = exp(x) + cos(2*y);
+
+func real E(real & x, real & y, real xix, real xiy){
+if(x == xix && y == xiy)
+	return 0; 
+return 1 / (2 * pi) * log(1 / ((x - xix)^2 + (y- xiy)^2)^0.5);
+}
+
+fespace Vh(Th, P1);
+
+func real intVolumePotential(real & xix, real & xiy){
+	// func Eh = E(x,y,xix, xiy);
+	// cout << "xix = " << xix << " xiy = " << xiy <<endl;
+	// real i = int2d(Th)(g1(x,y) * E(x,y,xix,xiy));
+	// cout << "i === " << i <<endl;
+	mesh Th2 = adaptmesh(Th, E(x,y,xix,xiy));
+	Th2 = adaptmesh(Th2, E(x,y,xix,xiy));
+	// fespace Vh2(Th2, P1);
+	// Vh2 Eh = E(x,y,xix,xiy);
+	// plot(Th2, Eh);
+	return - int2d(Th2)(g1(x,y) * E(x,y,xix,xiy));
+}
+
+cout << int2d(Th)(g1 * E(x,y,0,0)) << endl;
+func nu = intVolumePotential(x,y);
+
+Vh nuh, xh = x, yh = y;
+/*
+for(int k=0; k < Vh.ndof; k++)
+	nuh[][k] = intVolumePotential(xh[][k], yh[][k]);
+cout << nuh[] << endl;
+plot(Th, nuh, fill=1, value=1);
+
+//*/
+
+// cout << integral(9,9) << endl;
+/*
+//func d = (x-2)^2 + (y)^2 - 16 <= 0;
+func d = (abs(x) - 3 <= 0) * ((abs(y) - 10 <= 0));
+
+func gamma = 1 + 1 * d;
+
+fespace Vh(Th, P1);
+Vh uh, vh;
+Vh fh = f;
+problem lap(uh, vh) = 
+	int2d(Th)(gamma * (dx(uh) * dx(vh) + dy (uh) * dy(vh)))
+	+int2d(Th)((gamma - 1) * (dx(fh) * dx(vh) + dy(fh) * dy(vh)))
+	+on(1,2,3,4, uh = 0);
+lap;
+
+//*/
+
+
+///*
+include "indnod.edp"
+real nboundary = getnboundary();
+int[int] indnod(nboundary); getindnod(indnod, nboundary);
+
+real[int] g0(nboundary);
+
+// cout << "nboundary = " << nboundary << endl;
+// cout << "ndof = " << Vh.ndof << endl;
+// cout << indnod << endl;
+
+for(int k=0; k<nboundary; k++){
+g0[k] = g2(xh[][indnod[k]], yh[][indnod[k]]) 
+			- intVolumePotential(xh[][indnod[k]], yh[][indnod[k]]);
+}
+
+real[int] rhs = [1, g0];
+
+
+Vh phih = 0;
+func real int1dBasis(int ind){
+	phih[] = 0;
+	phih[][ind] = 1;
+	return int1d(Th,1)(phih);
+}
+real[int] temp1d(nboundary);
+for(int k=0; k<nboundary; k++){
+temp1d[k] = int1dBasis(indnod[k]);
+}
+
+func real int1dEBasis(real & xix, real & xiy, int ind){
+	phih[] = 0;
+	phih[][ind] = 1;
+	return int1d(Th,1)(phih * E(x,y,xix,xiy));
+}
+real xx = 0, yy = 0;
+//cout << int1dEBasis(xx,yy,1) << endl;
+///*
+real[int,int] M(nboundary,nboundary);
+// M.resize(nboundary, nboundary);
+for(int i = 0; i<nboundary; i++){
+for(int j = 0; j<nboundary; j++){
+M(i,j)=int1dEBasis(xh[][indnod[i]], yh[][indnod[i]], indnod[j]);
+}
+}
+
+real[int] ones(nboundary); ones=1;
+real a11 = 1e-16;
+
+matrix A = [[a11, temp1d'],[ones, M]];
+//real[int,int] A = [[a11, temp1d'],[ones, M]];
+// A(1,1) = 12;
+
+set(A, solver=GMRES);
+real[int] sol(nboundary + 1); // WARNING: construct immediately with right size
+
+/*cout << A << endl;
+cout << A(0,0) << endl;
+cout << temp1d << endl;
+cout << rhs << endl;
+*/
+
+
+sol = A^-1*rhs;
+
+Vh extsol = 0;
+for(int k = 0; k < nboundary; k++){
+extsol[][indnod[k]] = sol[k+1];
+}
+/////////////////////////////////////
+func real intVolumeSolution(real & xix, real & xiy){
+	return int2d(Th)(extsol * E(x,y,xix,xiy));
+}
+
+Vh w0;
+
+for(int k=0; k < Vh.ndof; k++)
+	w0[][k] = sol[0] + intVolumeSolution(xh[][k], yh[][k])
+	+ intVolumePotential(xh[][k], yh[][k]);;
+plot(Th, w0, fill=1, value=1);
+//*/
+Vh w0ex = g2;
+
+plot(Th, w0ex, fill=1, value=1);

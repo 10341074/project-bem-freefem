@@ -1,0 +1,43 @@
+// border b(t=0,2*pi){x=cos(t); y=sin(t); label = 1;};
+// mesh Th = buildmesh(b(50));
+
+mesh Th = square(80,80,[-30 + 60 * x, -30 + 60 * y],flags = 1);
+
+//plot(Th);
+
+func f = 1 / (2 * pi) * log(1 / ((x+6.01)^2 + y^2)^0.5);
+//func d = (x-2)^2 + (y)^2 - 16 <= 0;
+func d = (abs(x) - 3 <= 0) * ((abs(y) - 10 <= 0));
+
+func gamma = 1 + 1 * d;
+
+fespace Vh(Th, P1);
+Vh uh, vh;
+Vh fh = f;
+problem lap(uh, vh) = 
+	int2d(Th)(gamma * (dx(uh) * dx(vh) + dy (uh) * dy(vh)))
+	+int2d(Th)((gamma - 1) * (dx(fh) * dx(vh) + dy(fh) * dy(vh)))
+	+on(1,2,3,4, uh = 0);
+lap;
+
+Vh gh = fh + uh;
+plot(Th,uh,fill = 1,dim = 2, value = 1, ColorScheme = 2);
+
+Vh gammah = gamma;
+// plot(Th,gammah,fill = 1,dim = 3, value = 1);
+
+Th=adaptmesh(Th,uh);
+plot(Th);
+fh = f;
+lap;
+Th=adaptmesh(Th,uh);
+lap;
+
+gh = fh + uh;
+plot(gh,fill = 1,dim = 3, value = 1, ColorScheme = 2);
+plot(uh,fill = 1,dim = 2, value = 1, ColorScheme = 2);
+plot(Th);
+Vh dxuh = dx(gh);
+// plot(dxuh,fill = 1,dim = 3, value = 1, ColorScheme = 2);
+
+cout << " value origin " << uh(0,0) << endl;

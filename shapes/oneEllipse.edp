@@ -1,0 +1,63 @@
+int oneEllipseFlag = 0;
+matrix oneEllipsemRt;
+func real oneEllipseInit(matrix & mRt, complex affRt)
+{
+	if(oneEllipseFlag == 0)
+		{
+		oneEllipseFlag = 1;
+		real theta = arg(affRt);
+		mRt = [
+			[cos(theta), sin(theta)],
+			[-sin(theta), cos(theta)]
+			];
+		}
+return 0;
+}
+
+func int oneEllipseLevelset(real x, real y, real c, real a, real b, real r)
+{
+return (x - real(c))^2 / a^2 + (y - imag(c))^2 / b^2 <= 1;
+}
+func real oneEllipseR(real & y, real c, real r)
+{
+y = (y - imag(c)) / r;
+if(y > 1)
+	y = 1;
+if(y < -1)
+	y = -1;
+return real(c) + r * cos(asin(y));
+}
+func real oneEllipseL(real y, real c, real r)
+{
+real yn = (y - imag(c)) / r;
+if(yn > 1)
+	yn = 1;
+if(yn < -1)
+	yn = -1;
+return real(c) - r * cos(asin(y));
+}
+func real oneEllipseI(real & x, real & y, real a, real b, complex affTr, complex affRt)
+{
+oneEllipseInit(oneEllipsemRt, affRt);
+real[int] xyRight(2);
+real[int] xyRt = [x - real(affTr), y - imag(affTr)];
+xyRight = oneEllipsemRt * xyRt;
+real xn = xyRight[0] / abs(affRt), yn = xyRight[1] / abs(affRt);
+
+return oneEllipseLevelset(xn, yn, 0, a, b, 1);
+// if(oneEllipseR(y, c, r) < real(x))
+//	return 0;
+// if(oneEllipseL(y, c, r) > real(x))
+//	return 0;
+return 1;
+}
+
+func real oneEllipseI(real & x, real & y, real a, real b, complex affTr, complex affRt, matrix & m)
+{
+real[int] xyRight(2);
+real[int] xyRt = [x - real(affTr), y - imag(affTr)];
+xyRight = m * xyRt;
+real xn = xyRight[0] / abs(affRt), yn = xyRight[1] / abs(affRt);
+
+return oneEllipseLevelset(xn, yn, 0, a, b, 1);
+}

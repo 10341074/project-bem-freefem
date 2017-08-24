@@ -1,0 +1,51 @@
+//  return aff[0] + aff[1] * complex(2.0 * sin(2 * pi * t / 2) - 1j * sin(2 * pi * t))
+int oneDropFlag = 0;
+matrix oneDropmRt;
+func real oneDropInit(matrix & mRt, complex affRt)
+{
+	if(oneDropFlag == 0)
+		{
+		oneDropFlag = 1;
+		real theta = arg(affRt);
+		mRt = [
+			[cos(theta), sin(theta)],
+			[-sin(theta), cos(theta)]
+			];
+		}
+return 0;
+}
+func real oneDropL(real y)
+{
+real yn = - y;
+if(yn > 1)
+	yn = 1;
+if(yn < -1)
+	yn = -1;
+yn = asin(yn);
+if(yn < 0)
+	yn = yn + 2 * pi;
+return 2 * sin(yn/2);
+}
+func real oneDropR(real y)
+{
+real yn = - y;
+if(yn > 1)
+	yn = 1;
+if(yn < -1)
+	yn = -1;
+yn = asin(yn);
+return  2 * sin(pi/2 - yn/2);
+}
+func real oneDropI(real & x, real & y, complex affTr, complex affRt)
+{
+oneDropInit(oneDropmRt, affRt);
+real[int] xyRight(2);
+real[int] xyRt = [x - real(affTr), y - imag(affTr)];
+xyRight = oneDropmRt * xyRt;
+real xn = xyRight[0] / abs(affRt), yn = xyRight[1] / abs(affRt);
+if(oneDropL(yn) > real(xn))
+	return 0;
+if(oneDropR(yn) < real(xn))
+	return 0;
+return 1;
+}
