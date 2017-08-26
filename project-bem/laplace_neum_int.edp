@@ -1,0 +1,115 @@
+include "pack/layer.edp";
+border b(t=0,2*pi){x= 2 * cos(t); y=sin(t); label = 1;};
+mesh Th = buildmesh(b(50));
+
+plot(Th);
+func g = 0.5 * (x^3 - 3 * x * y^2);
+
+
+fespace Vh(Th, P1);
+
+////////
+Vh xh = x, yh = y;
+//////// compute indnod
+include "indnod.edp"
+real nboundary = getnboundary();
+int[int] indnod(nboundary); getindnod(indnod, nboundary);
+////////
+/////////////////////////////////////////////////////////
+//////// 1. assemble right term gh
+real[int] gh(nboundary);
+for(int k=0; k<nboundary; k++){
+	gh[k] = g(xh[][indnod[k]], yh[][indnod[k]]);
+}
+// real[int] rhs = [1, g0];
+//////// 2. assemble matrix M = Kp + 0.5 I
+
+/*
+func real integrandPhinu0Basis(real & x, real & y){
+	phih * (
+		Phix0(x,y,xix,xiy) * N.x +
+		Phiy0(x,y,xix,xiy) * N.y
+		)
+}
+*/
+//mesh Thad;
+//fespace Vhad(Thad,P1);
+Vh phih = 0;
+func real int1dPhinu0Basis(real & xix, real & xiy, int ind){
+	phih[] = 0;
+	phih[][ind] = 1;
+	return int1d(Th)(phih * (
+		Phix0(x,y,xix,xiy) * N.x +
+		Phiy0(x,y,xix,xiy) * N.y
+		));
+}
+
+real[int,int] M(nboundary,nboundary);
+// M.resize(nboundary, nboundary);
+for(int i = 0; i<nboundary; i++){
+	//mesh Thad = adaptmesh(Th, Phi(x,y,xh[][indnod[i]], yh[][indnod[i]]));
+	for(int j = 0; j<nboundary; j++){
+		M(i,j)=int1dPhinu0Basis(
+			xh[][indnod[i]], yh[][indnod[i]], indnod[j]);
+		if(i == j){
+			M(i,i) = M(i,i) + 0.5;
+			// cout << "M(i,i) i = " << i<< " = "<< M(i,i)<<endl;
+		}
+	}
+}
+
+
+matrix A = M;
+set(A, solver=GMRES);
+real[int] sol(nboundary);
+
+sol = A^-1*gh;
+cout << "solution " << sol <<endl;
+Vh solh = 0;
+for(int k=0; k < nboundary; k++){
+	solh[][indnod[k]] = sol[k];
+}
+////// 3. compute solution from single layer
+func real int1dS(real & xix, real & xiy){
+	return int1d(Th)(solh * Phi(x,y, xix, xiy));
+}
+
+Vh uh;
+for(int k=0; k<Vh.ndof; k++){
+	uh[][k] = int1dS(xh[][k], yh[][k]);
+}
+
+
+
+
+
+/*
+Vh extsol = 0;
+for(int k = 0; k < nboundary; k++){
+extsol[][indnod[k]] = sol[k+1];
+}
+/////////////////////////////////////
+func real intVolumeSolution(real & xix, real & xiy){
+	return int2d(Th)(extsol * E(x,y,xix,xiy));
+}
+
+Vh w0;
+
+for(int k=0; k < Vh.ndof; k++)
+	w0[][k] = sol[0] + intVolumeSolution(xh[][k], yh[][k])
+	+ intVolumePotential(xh[][k], yh[][k]);;
+plot(Th, w0, fill=1, value=1);
+//*/
+
+
+Vh w0ex = g;
+plot(Th, w0ex, fill=1, value=1);
+plot(Th, uh, fill=1, value=1);
+
+
+/* 
+phih[] = 0;
+phih[][indnod[0]] = 1;
+Vh hh = (phih * Phi(x,y,xh[][indnod[0]],yh[][indnod[0]]));
+plot(Th, hh, fill=1);
+*/

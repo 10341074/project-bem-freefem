@@ -1,0 +1,56 @@
+func real v(real s){
+	int p = 2;
+	return (1.0 / p - 0.5) * ( (pi - s) / pi ) ^ 3 + 1.0 / p * (s - pi) / pi + 0.5;
+}
+func real w(real s){
+	int p = 2;
+	return 2.0 * pi * v(s)^p / ( v(s)^p + v(2.0 * pi - s)^p );
+}
+//border b(t=0,2*pi){x=2*cos(t); y=sin(t); label = 1;};
+border b(t=0,2*pi){x=2*cos(w(t)); y=sin(w(t)); label = 1;};
+mesh Th = buildmesh(b(100));
+
+// mesh Th = square(80,80,[-30 + 60 * x, -30 + 60 * y],flags = 1);
+
+plot(Th);
+
+func g = 0.5 * (x^3 - 3 * x * y);
+
+func real Phi(real & x, real & y, real x0, real y0){
+if(x == x0 && y == y0)
+	return 0;
+return 1 / (2 * pi) * log(1 / ((x - x0)^2 + (y - y0)^2)^0.5);
+}
+
+fespace Vh(Th, P1);
+
+Vh xh = x, yh = y;
+cout << xh[] << endl << yh[] << endl;
+real x0 = 2, y0 = 0;
+Vh P = Phi(x,y,x0,y0);
+cout << int1d(Th)(Phi(x,y,x0,y0)) << endl;
+cout << int1d(Th)(P) << endl;
+
+
+
+int[int] rng(10:10:300);
+real[int] iter1f(rng.n), iter2vh(rng.n);
+for(int i=0; i < rng.n; i++){
+	Th = buildmesh(b(rng[i]));
+	plot(Th);
+	fespace VhP1(Th,P1);
+	VhP1 P = Phi(x,y,x0,y0);
+	iter1f[i] = int1d(Th)(Phi(x,y,x0,y0));
+	iter2vh[i] = int1d(Th)(P);
+}
+
+func real ofilestream(string str, real[int] & vec){
+	ofstream file(str);
+	for(int i=0; i< vec.n; i++)
+		file << vec[i] << endl;
+	return 0;
+}
+
+
+ofilestream("iter1f.txt", iter1f);
+ofilestream("iter2vh.txt", iter2vh);

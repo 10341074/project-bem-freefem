@@ -1,0 +1,18 @@
+include "pack/mesh.edp";
+include "indnod.edp";
+include "pack/layer.edp";
+
+real nboundary = getnboundary();
+int[int] indnod(nboundary); getindnod(indnod, nboundary);
+fespace Vh(Th, P1);
+include "pack/normal.edp"
+////////
+Vh xh = x, yh = y;
+
+for(int k=0; k<nboundary; k++){
+//	cout << xh[][indnod[k]]<< "  " << yh[][indnod[k]] << endl;
+//	cout<< Phiy0(xh[][indnod[k]],yh[][indnod[k]],1,0) <<endl;
+	cout << Phix0(xh[][indnod[k]],yh[][indnod[k]],1,0) * nxh(1,0)
+ +	Phiy0(xh[][indnod[k]],yh[][indnod[k]],1,0) * nyh(,1,0) << endl;
+
+}

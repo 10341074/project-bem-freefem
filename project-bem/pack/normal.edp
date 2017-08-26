@@ -1,0 +1,22 @@
+Vh nxh, nyh;
+func real computeNormals(real[int] & nxh, real[int] & nyh){
+	for(int k=0; k<Vh.ndof; k++){
+		Vh eh = 0; eh[][k] = 1;
+		nxh[k] = int1d(Th)(N.x * eh);
+		nyh[k] = int1d(Th)(N.y * eh);
+	}
+	real[int] nnormh(Vh.ndof);
+	for(int k=0; k<Vh.ndof; k++){
+		nnormh[k] = sqrt(nxh[k]^2 + nyh[k]^2);
+		if(nnormh[k] == 0)
+			nnormh[k] = 1;
+	}
+	for(int k=0; k<Vh.ndof; k++){
+		nxh[k] = nxh[k] / nnormh[k];
+		nyh[k] = nyh[k] / nnormh[k];
+	}
+}
+//plot(Th, uh, dim=3, fill =1, value = 1);
+//cout << uh[].n << endl;
+
+computeNormals(nxh[], nyh[]);

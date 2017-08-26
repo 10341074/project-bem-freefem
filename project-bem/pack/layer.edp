@@ -1,0 +1,23 @@
+func real Phi(real & x, real & y, real x0, real y0){
+	if(x == x0 && y == y0)
+		return 0;
+	return 1 / (2 * pi) * log(1 / ((x - x0)^2 + (y - y0)^2)^0.5);
+}
+func real Phix(real & x, real & y, real x0, real y0){
+	if(x == x0 && y == y0)
+		return 0;
+	return - 1 / (2 * pi) * 1 / ((x - x0)^2 + (y - y0)^2) * (x - x0);
+}
+func real Phiy(real & x, real & y, real x0, real y0){
+	if(x == x0 && y == y0)
+		return 0;
+	return - 1 / (2 * pi) * 1 / ((x - x0)^2 + (y - y0)^2) * (y - y0);
+}
+func real Phix0(real & x, real & y, real x0, real y0){
+	return -Phix(x, y, x0, y0);
+}
+func real Phiy0(real & x, real & y, real x0, real y0){
+	return -Phiy(x, y, x0, y0);
+}
+
+

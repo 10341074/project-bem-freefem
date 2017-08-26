@@ -1,9 +1,12 @@
-border b(t=0,2*pi){x=cos(t); y=sin(t); label = 1;};
-mesh Th = buildmesh(b(5));
+include "pack/mesh.edp"
 plot(Th);
 fespace Vh(Th,P1);
 Vh vec1; // fonction elements finis
-varf vint(uu,v) = int2d(Th)(v);
+varf vint(uu,v) = int1d(Th)(v);
 real[int] omega=vint(0,Vh);
 real number = vec1[]'*omega;
 cout << omega << endl;
+
+real[int] ones(omega.n); ones =1;
+cout << ones' * omega << endl;
+cout << 2*pi << endl;

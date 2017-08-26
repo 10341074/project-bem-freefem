@@ -1,0 +1,5 @@
+border b(t=0,2*pi){x=cos(t); y=sin(t); label = 1;};
+mesh Th = buildmesh(b(50));
+
+plot(Th);
+func g = 0.5 * (x^3 - 3 * x * y^2);

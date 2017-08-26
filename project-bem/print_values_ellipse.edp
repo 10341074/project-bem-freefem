@@ -1,0 +1,36 @@
+include "pack/layer.edp";
+include "pack/mesh.edp";
+
+fespace Vh(Th, P1);
+
+////////
+Vh xh = x, yh = y;
+//////// compute indnod
+include "indnod.edp"
+real nboundary = getnboundary();
+int[int] indnod(nboundary); getindnod(indnod, nboundary);
+
+include "pack/normal.edp";
+
+
+real[int] nnormh(Vh.ndof);
+for(int k=0; k<nnormh.n; k++)
+	nnormh[k] = sqrt(nxh[][k]^2 + nyh[][k]^2);
+include "pack/io.edp";
+
+ofilestreamBoundary("out/x.txt", xh[], indnod);
+ofilestreamBoundary("out/y.txt", yh[], indnod);
+
+ofilestreamBoundary("out/nx.txt", nxh[], indnod);
+ofilestreamBoundary("out/ny.txt", nyh[], indnod);
+
+for(int k=0; k<indnod.n; k++){
+	Vh e = 0;
+	e[][indnod[k]] = 1;
+}
+
+/*
+real[int] t(0:2*pi/50:2*pi), c(50);
+for(int k=0; k<50; k++) c[k] = 2*cos(t[k]);
+cout << c;
+*/

@@ -1,0 +1,20 @@
+func real ofilestream(string str, real[int] & vec){
+	ofstream file(str);
+	for(int i=0; i< vec.n; i++)
+		file << vec[i] << endl;
+	return 0;
+}
+
+func real extractBoundary(real[int] & out, real[int] & inp, int[int] & indnod){
+	for(int k=0; k<out.n; k++){
+		out[k] = inp[indnod[k]];
+	}
+	return 0;
+}
+
+func real ofilestreamBoundary(string str, real[int] & vec, int[int] & indnod){
+	real[int] vech(indnod.n);
+	extractBoundary(vech, vec, indnod);
+	ofilestream(str, vech);
+	return 0;
+}
