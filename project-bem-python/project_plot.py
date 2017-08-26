@@ -57,13 +57,58 @@ def integral():
   print(tot)
   return
 def integral2():
-  s = sg.Segment(100, f_inargs = (sh.ellipse, (0, 2, 1)), quad='p')
+  s = sg.Segment(100, f_inargs = (sh.ellipse, (0, 2, 1)), quad='g')
   print(s.x[0])
   K = ly.layerpotS(s=s)
-  print(K[0,:].dot(np.ones(100)))
+  print(K[0,:].dot(np.ones(99)))
   return
+
+
+def convergenceIntegralLayerP(n_ex = 100):
+  rng = np.arange(10 + (n_ex % 2), n_ex, 10)
+  iterInt = np.empty(rng.size, float)
+  for nindex, n in enumerate(rng):
+    s = sg.Segment(n, f_inargs = (sh.ellipse, (0, 2, 1)), quad='p')
+    KS = ly.layerpotS(s = s)
+    iterInt[nindex] = KS[0,:].dot(np.ones(n))
+    print("point = ", s.x[0])
+  return iterInt
+def convergenceIntegralLayerG(n_ex = 100):
+  rng = np.arange(10 + (n_ex % 2), n_ex, 10)
+  iterInt = np.empty(rng.size, float)
+  for nindex, n in enumerate(rng):
+    s = sg.Segment(n, f_inargs = (sh.ellipse, (0, 2, 1)), quad='gf')
+    KS = ly.layerpotS(s = s)
+    iterInt[nindex] = KS[0,1:].dot(np.ones(n - 1))
+    print("point = ", s.x[0], iterInt[nindex])
+  return iterInt
+def convergenceIntegralBEM1G(n_ex = 100):
+  rng = np.arange(10 + (n_ex % 2), n_ex, 10)
+  iterInt = np.empty(rng.size, float)
+  for nindex, n in enumerate(rng):
+    s = sg.Segment(n, f_inargs = (sh.ellipse, (0, 2, 1)), quad='gf')
+    iterInt[nindex] = sum([Phi1z(ix, s.x[0]) * s.w[i] for i, ix in enumerate(s.x)])
+    print("point = ", s.x[0], iterInt[nindex])
+  return iterInt
+def iterPlot(iterv, fig = ()):
+  if fig == ():
+    fig = plt.figure()
+  plt.plot(iterv, '*-', ms=2)
+  plt.show(block=False)
+  # plt.axis('equal')
+  # plt.axis('square')
+  return fig
 if __name__ == "__main__":
-  plot_Phie(0, 0, zx = 2)
-  integral()
-  integral2()
+  # plot_Phie(0, 0, zx = 2)
+  # integral()
+  # integral2()
+  n_ex = 300
+  iterv = convergenceIntegralLayerP(n_ex)
+  fig = iterPlot(iterv)
+  ret = input('Press')
+  iterv = convergenceIntegralLayerG(n_ex)
+  iterPlot(iterv, fig)
+  ret = input('Press')
+  iterv = convergenceIntegralBEM1G(n_ex)
+  iterPlot(iterv, fig)
   ret = input('Press')

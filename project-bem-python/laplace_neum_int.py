@@ -3,6 +3,7 @@ from src import *
 def g(z):
   x, y = z.real, z.imag
   return 0.5 * (x**3 - 3 * x * y**2)
+
 s = gm.sg_one_ellipse(50)
 
 MS = ly.layerpotSD(s=s)
